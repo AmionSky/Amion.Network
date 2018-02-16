@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net45;net451;net452;net46;net461;net462;net47;net471</TargetFrameworks>
     <Description>A lightweight .Net network library</Description>
     <Authors>Csányi István</Authors>
     <Company />
@@ -9,6 +9,8 @@
     <Copyright>Copyright ©2018 Csányi István</Copyright>
     <PackageProjectUrl>https://github.com/Pisti01/Amion.Network</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
