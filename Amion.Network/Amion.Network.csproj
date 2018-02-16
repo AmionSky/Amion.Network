@@ -6,6 +6,9 @@
     <Authors>Csányi István</Authors>
     <Company />
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Copyright>Copyright ©2018 Csányi István</Copyright>
+    <PackageProjectUrl>https://github.com/Pisti01/Amion.Network</PackageProjectUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
   </PropertyGroup>
 
 </Project>
