@@ -13,12 +13,15 @@ namespace Amion.Network
         Ping = 4,
     }
 
+    /// <summary>
+    /// Class for creating outgoing network message
+    /// </summary>
     public class NetOutMessage
     {
-        public const int HeaderSize = 5;
+        internal const int HeaderSize = 5;
+        protected List<byte> message;
 
-        private List<byte> message;
-        
+        /// <summary></summary>
         /// <param name="msgType">The type of the message. Defaults to 'MessageType.Data'</param>
         public NetOutMessage(MessageType msgType = MessageType.Data)
         {
@@ -27,13 +30,7 @@ namespace Amion.Network
             message.AddRange(BitConverter.GetBytes((int)0));
         }
 
-        public byte[] ToArray()
-        {
-            FinalizeMessage();
-            return message.ToArray();
-        }
-
-        private void FinalizeMessage()
+        protected void FinalizeMessage()
         {
             byte[] msgLength = BitConverter.GetBytes(message.Count - 5);
 
@@ -43,15 +40,29 @@ namespace Amion.Network
             }
         }
 
-        public static void DecodeHeader(byte[] header, out MessageType messageType, out int messageLength)
+        //---------------------------------------------------------------------
+        // Internal methods
+        //---------------------------------------------------------------------
+
+        internal byte[] ToArray()
+        {
+            FinalizeMessage();
+            return message.ToArray();
+        }
+
+        internal static void DecodeHeader(byte[] header, out MessageType messageType, out int messageLength)
         {
             messageType = (MessageType)header[0];
             messageLength = BitConverter.ToInt32(header, 1);
         }
 
-        //
+        //---------------------------------------------------------------------
         // Writers
-        //
+        //---------------------------------------------------------------------
+
+        /// <summary>
+        /// Writes a string at the end of the message using an int for the length and Unicode
+        /// </summary>
         public void Write(String data)
         {
             byte[] bytes = Encoding.Unicode.GetBytes(data);
@@ -59,51 +70,81 @@ namespace Amion.Network
             message.AddRange(bytes);
         }
 
+        /// <summary>
+        /// Writes a short at the end of the message using 2 bytes
+        /// </summary>
         public void Write(Int16 data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes an int at the end of the message using 4 bytes
+        /// </summary>
         public void Write(Int32 data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes a long at the end of the message using 8 bytes
+        /// </summary>
         public void Write(Int64 data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes an unsigned short at the end of the message using 2 bytes
+        /// </summary>
         public void Write(UInt16 data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes an unsigned int at the end of the message using 4 bytes
+        /// </summary>
         public void Write(UInt32 data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes an unsigned long at the end of the message using 8 bytes
+        /// </summary>
         public void Write(UInt64 data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes a bool at the end of the message using a byte
+        /// </summary>
         public void Write(bool data)
         {
             message.AddRange(BitConverter.GetBytes(data));
         }
 
+        /// <summary>
+        /// Writes a byte at the end of the message using a byte
+        /// </summary>
         public void Write(byte data)
         {
             message.Add(data);
         }
 
+        /// <summary>
+        /// Writes a series of bytes at the end of the message
+        /// </summary>
         public void Write(IEnumerable<byte> data)
         {
             message.AddRange(data);
         }
 
+        /// <summary>
+        /// Writes a Guid at the end of the message using 16 bytes
+        /// </summary>
         public void Write(Guid data)
         {
             message.AddRange(data.ToByteArray());
