@@ -10,9 +10,6 @@ namespace Amion.Network
     {
         Server_FailedConnectionAdd,
         Server_FailedConnectionRemove,
-        Discovery_Msg_FailedValidation,
-        Discovery_Msg_IncorrectAppId,
-        Discovery_Msg_IncorrectAppNum,
         Server_LocalIPNotFound,
         Server_FailedToBindListener,
     }
@@ -21,9 +18,7 @@ namespace Amion.Network
     {
         protected static void Error(ECode code)
         {
-#if DEBUG
             Log($"Error #{((int)code).ToString("0000")}: {code}");
-#endif
         }
 
         protected static void Log(string text)

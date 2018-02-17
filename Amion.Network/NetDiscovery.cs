@@ -5,11 +5,29 @@ using System.Threading.Tasks;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// LAN discovery
+    /// </summary>
     public class NetDiscovery : NetUtility, IDisposable
     {
+        /// <summary>
+        /// The port on which it performs the discovery
+        /// </summary>
         public int DiscoveryPort = 4356;
+
+        /// <summary>
+        /// Id of the application. Should be different for every app.
+        /// </summary>
         public int ApplicationId = 42;
+
+        /// <summary>
+        /// Approval number of the application. Should be different for every app major version.
+        /// </summary>
         public int ApprovalNumber = 111;
+
+        /// <summary>
+        /// Extra 4 bytes of data to broadcast.
+        /// </summary>
         public int MessageData = 0;
 
         private const int BufferSize = 16;
@@ -30,6 +48,12 @@ namespace Amion.Network
 
         private int MsgValidator(bool isServer) => (isServer) ? MV_Server : MV_Client;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isServer">Is it for a server.</param>
+        /// <param name="responseAction">Action to invoke on successful match. Pass null to just send response message.</param>
+        /// <param name="prefAddressFamily">Preferred address family</param>
         public NetDiscovery(bool isServer, Action<EndPoint> responseAction, AddressFamily prefAddressFamily = AddressFamily.InterNetwork)
         {
             this.isServer = isServer;
@@ -76,7 +100,7 @@ namespace Amion.Network
         public bool SendDiscoveryMessage(EndPoint endPoint = null)
         {
             if (endPoint == null) endPoint = new IPEndPoint(IPAddress.Broadcast, DiscoveryPort);
-            byte[] message = MessageEncoder(MessageData, MsgValidator(isServer));
+            byte[] message = MessageEncoder(MsgValidator(isServer), MessageData);
 
             lock (senderLock)
             {
@@ -141,7 +165,7 @@ namespace Amion.Network
             Log("Discovery response service shut down.");
         }
 
-        private byte[] MessageEncoder(int data, int validator)
+        private byte[] MessageEncoder(int validator, int data)
         {
             byte[] message = new byte[16];
             byte[][] rawMessage = new byte[4][];
@@ -164,190 +188,21 @@ namespace Amion.Network
         {
             if (ApplicationId != BitConverter.ToInt32(message, 0))
             {
-                Error(ECode.Discovery_Msg_IncorrectAppId);
+                //Discovery_Msg_IncorrectAppId
                 return -1;
             }
             else if (ApprovalNumber != BitConverter.ToInt32(message, 4))
             {
-                Error(ECode.Discovery_Msg_IncorrectAppNum);
+                //Discovery_Msg_IncorrectAppNum
                 return -2;
             }
             else if (validator != BitConverter.ToInt32(message, 8))
             {
-                Error(ECode.Discovery_Msg_FailedValidation);
+                //Discovery_Msg_FailedValidation
                 return -3;
             }
             else return BitConverter.ToInt32(message, 12);
         }
-
-
-        /*
-        public void StartServerResponseService(int listenerPort)
-        {
-            if (discoverySocket != null || responseTask != null) StopResponseService();
-
-            discoverySocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            responseLoop = true;
-
-            responseTask = Task.Run(() =>
-            {
-                try
-                {
-                    discoverySocket.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort));
-                    Log("Running discovery response service...");
-
-                    EndPoint tempRemoteEP = null;
-                    byte[] buffer = new byte[BufferSize];
-                    byte[] message = MessageEncoder(listenerPort, MV_Server);
-
-                    while (responseLoop)
-                    {
-                        //Server could crash here if there is another server
-                        //on the network listening at the same port.
-                        tempRemoteEP = new IPEndPoint(IPAddress.Any, 0);
-                        discoverySocket.ReceiveFrom(buffer, ref tempRemoteEP);
-                        int receivedPort = MessageDecoder(buffer, MV_Server);
-
-                        if (receivedPort >= 0)
-                        {
-                            //Reply to client
-                            discoverySocket.SendTo(message, tempRemoteEP);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    //Log(ex.Message);
-                }
-                finally
-                {
-                    discoverySocket?.Dispose();
-                    discoverySocket = null;
-
-                    Log("Discovery response service shut down.");
-                }
-            });
-        }
-
-        public void StartClientResponseService(Action<IPEndPoint> GotConnection)
-        {
-            if (discoverySocket != null || responseTask != null) StopResponseService();
-            
-            discoverySocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            responseLoop = true;
-
-            responseTask = Task.Run(() =>
-            {
-                try
-                {
-                    discoverySocket.Bind(new IPEndPoint(IPAddress.Any, DiscoveryPort + 1));
-                    Log("Running discovery response service...");
-                    
-                    EndPoint tempRemoteEP = null;
-                    byte[] buffer = new byte[BufferSize];
-
-                    while (responseLoop)
-                    {
-                        tempRemoteEP = new IPEndPoint(IPAddress.Any, 0);
-                        discoverySocket.ReceiveFrom(buffer, ref tempRemoteEP);
-                        int receivedPort = MessageDecoder(buffer, MV_Client);
-
-                        if (receivedPort >= 0)
-                        {
-                            IPAddress remoteAddress = ((IPEndPoint)tempRemoteEP).Address;
-                            GotConnection(new IPEndPoint(remoteAddress,receivedPort));
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    //Log(ex.Message);
-                }
-                finally
-                {
-                    discoverySocket?.Dispose();
-                    discoverySocket = null;
-
-                    Log("Discovery response service shut down.");
-                }
-            });
-        }
-
-        
-
-        public IPEndPoint StartClientHostDiscovery(out bool error, int timeout = 5000)
-        {
-            Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-            client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, timeout);
-
-            IPEndPoint AllEndPoint = new IPEndPoint(IPAddress.Broadcast, DiscoveryPort);
-            byte[] buffer = new byte[BufferSize];
-
-            IPAddress remoteAddress = null;
-            int remotePort = -1;
-
-            error = false;
-
-            try
-            {
-                //Send message to everyone on this network
-                client.SendTo(MessageEncoder(timeout, MV_Server), AllEndPoint);
-            }
-            catch (Exception ex)
-            {
-                Log("Error in discovery search: " + ex.Message);
-
-                client?.Dispose();
-
-                error = true;
-                return null;
-            }
-            
-            EndPoint tempRemoteEP = null;
-
-            while (remotePort < 0)
-            {
-                tempRemoteEP = new IPEndPoint(IPAddress.Any, 0);
-                try { client.ReceiveFrom(buffer, ref tempRemoteEP); }
-                catch (Exception ex) { Log(ex.Message); break; }
-                remotePort = MessageDecoder(buffer, MV_Server);
-            }
-
-            //Get server IP and clean-up
-            remoteAddress = ((IPEndPoint)tempRemoteEP).Address;
-            client.Dispose();
-
-            if (remoteAddress == null || remotePort < 0)
-            {
-                Log("No discovery host found.");
-                return null;
-            }
-            else
-            {
-                Log($"Host: {remoteAddress}:{remotePort}");
-                return new IPEndPoint(remoteAddress, remotePort);
-            }
-        }
-
-        public void StartServerHostDiscovery(int listenerPort)
-        {
-            Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-            IPEndPoint AllEndPoint = new IPEndPoint(IPAddress.Broadcast, DiscoveryPort + 1);
-
-            try
-            {
-                client.SendTo(MessageEncoder(listenerPort, MV_Client), AllEndPoint);
-            }
-            catch (Exception)
-            {
-                Log("Error in discovery search");
-            }
-
-            client?.Dispose();
-        }
-        */
 
         public void Dispose()
         {
