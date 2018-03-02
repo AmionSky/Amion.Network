@@ -16,7 +16,15 @@ namespace Amion.Network
 
     public class NetConnection : NetUtility, IDisposable
     {
+        /// <summary>
+        /// Called when a Message is received from the connection.
+        /// Recommended to attach NetMessageHandler to it for handling messages without blocking the receiver thread.
+        /// </summary>
         public event EventHandler<MessageReceivedEventArgs> RawMessageReceived;
+
+        /// <summary>
+        /// Called when status changed. Use NetServer or NetClient ConnectionStatusChanged event instead of this.
+        /// </summary>
         public event EventHandler<ConnectionStatusChangedEventArgs> StatusChanged;
 
         private NetConnectionStatus status = NetConnectionStatus.Unknown;
@@ -33,8 +41,19 @@ namespace Amion.Network
         private ConcurrentQueue<byte[]> messageQueue;
         private AutoResetEvent messageSentEvent;
 
+        /// <summary>
+        /// Current status of the connection.
+        /// </summary>
         public NetConnectionStatus Status => status;
+
+        /// <summary>
+        /// Identification of the connection.
+        /// </summary>
         public Guid RemoteId => remoteId;
+
+        /// <summary>
+        /// Gets the remote endpoint.
+        /// </summary>
         public EndPoint RemoteEndPoint => connection.RemoteEndPoint;
 
         public NetConnection(Socket socket)
@@ -55,6 +74,9 @@ namespace Amion.Network
             senderTask = Task.Factory.StartNew(SenderWorker, TaskCreationOptions.LongRunning);
         }
 
+        /// <summary>
+        /// Starts the message receiver.
+        /// </summary>
         public void StartReceiverTask()
         {
             if (receiverTask == null) receiverTask = Task.Factory.StartNew(ReceiverWorker, TaskCreationOptions.LongRunning);
@@ -214,6 +236,9 @@ namespace Amion.Network
         }
 
         // Dispose
+        /// <summary>
+        /// Disconnects the socket. Same as Dispose().
+        /// </summary>
         [Obsolete("Use Dispose() instead")]
         public void Disconnect() => Dispose();
 
