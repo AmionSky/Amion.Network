@@ -10,7 +10,9 @@
     <PackageProjectUrl>https://github.com/Pisti01/Amion.Network</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
     <FileVersion>1.0.0.0</FileVersion>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>aminetkey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
 </Project>
