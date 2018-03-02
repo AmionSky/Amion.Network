@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// Helper class for handling incoming messages from multiple connections without blocking the receiver thread.
+    /// </summary>
     public class NetMessageHandler : IDisposable
     {
         private ConcurrentQueue<MessageReceivedEventArgs> receivedMessages;
@@ -12,6 +15,9 @@ namespace Amion.Network
         private Task processorTask;
         private bool processorLoop;
 
+        /// <summary>
+        /// Called when a message is received. Use this event as your main message processing thread.
+        /// </summary>
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
 
         public NetMessageHandler()
@@ -22,6 +28,9 @@ namespace Amion.Network
             processorLoop = false;
         }
 
+        /// <summary>
+        /// Starts the message processing task. Subscribe for MessageReceived event before calling this.
+        /// </summary>
         public void StartMessageProcessor()
         {
             if (processorTask != null) return;
@@ -48,6 +57,9 @@ namespace Amion.Network
             }
         }
 
+        /// <summary>
+        /// Stops the message processing task.
+        /// </summary>
         public void StopMessageProcessor()
         {
             if (processorTask == null) return;
@@ -59,6 +71,9 @@ namespace Amion.Network
             messageReceivedEvent.Reset();
         }
 
+        /// <summary>
+        /// Subscribe this method to the NetConnection's RawMessageReceived event.
+        /// </summary>
         public void RawMessageReceived(object sender, MessageReceivedEventArgs e)
         {
             receivedMessages.Enqueue(e);
