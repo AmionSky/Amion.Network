@@ -6,6 +6,9 @@ using System.Net.Sockets;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// Error code enum
+    /// </summary>
     public enum ECode
     {
         Server_FailedConnectionAdd,
