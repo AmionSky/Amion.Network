@@ -1,2 +1,2 @@
 # Amion.Network
-A lightweight .Net network library
+A lightweight .Net TCP network library
