@@ -9,16 +9,27 @@ using System.Threading.Tasks;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// Class for handling multiple connections. Also implements a listener for incoming connections.
+    /// </summary>
     public class NetServer : NetShared, IDisposable
     {
-        
+        /// <summary>
+        /// Currently active connections
+        /// </summary>
         public ConcurrentDictionary<Guid, NetConnection> Connections;
 
+        /// <summary>
+        /// Called when the listener socket's status change
+        /// </summary>
         public event EventHandler<ListenerStatusEventArgs> ListenerStatusChanged;
 
         private Socket listener;
         private Task accepterTask;
 
+        /// <summary>
+        /// Gets the port the listener running on. If fails returns 0.
+        /// </summary>
         public int ListenerPort => (listener?.LocalEndPoint as IPEndPoint)?.Port ?? 0;
 
         public NetServer()
@@ -28,6 +39,11 @@ namespace Amion.Network
             ConnectionStatusChanged += NetServer_ConnectionStatusChanged;
         }
 
+        /// <summary>
+        /// Starts/restarts the listener on a Local IP.
+        /// </summary>
+        /// <param name="backlog">The maximum length of the pending connections queue.</param>
+        /// <param name="listenerPort">Port of the listener. 0 means any available port.</param>
         public void StartListener(int backlog = 10, int listenerPort = 0)
         {
             //Stops the listener if there is any.
@@ -62,6 +78,9 @@ namespace Amion.Network
             accepterTask = Task.Factory.StartNew(ConnectionAccepter, TaskCreationOptions.LongRunning);
         }
 
+        /// <summary>
+        /// Stops the listener
+        /// </summary>
         public void StopListener()
         {
             listener?.Dispose();
@@ -69,6 +88,9 @@ namespace Amion.Network
             accepterTask?.Wait();
         }
 
+        /// <summary>
+        /// Disconnects from all connections
+        /// </summary>
         public void DisconnectAll()
         {
             foreach (var connection in Connections)
@@ -77,11 +99,19 @@ namespace Amion.Network
             }
         }
 
+        /// <summary>
+        /// Is listener running
+        /// </summary>
+        /// <returns></returns>
         public bool IsListenerRunning()
         {
             return (listener != null) ? listener.IsBound : false;
         }
 
+        /// <summary>
+        /// Gets the listener socket
+        /// </summary>
+        /// <returns></returns>
         public Socket GetListener()
         {
             return listener;
