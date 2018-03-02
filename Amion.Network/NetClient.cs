@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// Class for handling a single connection
+    /// </summary>
     public class NetClient : NetShared, IDisposable
     {
         public NetConnection Connection => connection;
@@ -17,8 +20,14 @@ namespace Amion.Network
             ConnectionStatusChanged += NetClient_ConnectionStatusChanged;
         }
 
+        /// <summary>
+        /// Connect to a specified IP. Disconnects from the current connection on successful connect.
+        /// </summary>
+        /// <param name="ipEndPoint">IP to connect to</param>
         public void Connect(IPEndPoint ipEndPoint)
         {
+            if (ipEndPoint == null) { Log("Connect: IPEndPoint is null"); return; }
+
             lock (connectLock)
             {
                 Socket clientSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)

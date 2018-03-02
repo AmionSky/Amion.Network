@@ -5,16 +5,38 @@ namespace Amion.Network
 {
     public abstract class NetShared : NetUtility
     {
+        /// <summary>
+        /// Preferred address family. Recommended to leave as default.
+        /// </summary>
         public AddressFamily PreferredAddressFamily = AddressFamily.InterNetwork;
 
+        /// <summary>
+        /// Use TCP no-delay (Nagle algorithm)
+        /// </summary>
         public bool UseNoDelay = false;
+
+        /// <summary>
+        /// Automatically start the message receiver. Don't use it if you didn't set up listening for raw incoming messages on ConnectionAdded event.
+        /// </summary>
         public bool AutoStartReceiver = true;
 
+        /// <summary>
+        /// Called when established a new connection
+        /// </summary>
         public event EventHandler<ConnectionAddedEventArgs> ConnectionAdded;
+
+        /// <summary>
+        /// Called while disconnecting
+        /// </summary>
         public event EventHandler<ConnectionRemovedEventArgs> ConnectionRemoved;
+
+        /// <summary>
+        /// Called when a status of a NetConnection changed
+        /// </summary>
         public event EventHandler<ConnectionStatusChangedEventArgs> ConnectionStatusChanged;
 
-        // Events
+        #region Events
+
         protected virtual void OnConnectionAdded(ConnectionAddedEventArgs e)
         {
             ConnectionAdded?.Invoke(this, e);
@@ -41,5 +63,7 @@ namespace Amion.Network
         {
             ConnectionStatusChanged?.Invoke(sender, new ConnectionStatusChangedEventArgs(status, remoteId));
         }
+
+        #endregion
     }
 }

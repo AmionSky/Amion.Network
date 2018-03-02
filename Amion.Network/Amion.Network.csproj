@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45;net451;net452;net46;net461;net462;net47;net471</TargetFrameworks>
-    <Description>A lightweight .Net network library</Description>
+    <Description>A lightweight .Net TCP network library</Description>
     <Authors>Csányi István</Authors>
     <Company />
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
