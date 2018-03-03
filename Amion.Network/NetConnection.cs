@@ -35,6 +35,7 @@ namespace Amion.Network
         private Task senderTask;
 
         private bool disposed;
+        private object disposeLock;
 
         private object senderLock;
         private bool senderLoop;
@@ -56,15 +57,19 @@ namespace Amion.Network
         /// </summary>
         public EndPoint RemoteEndPoint => connection.RemoteEndPoint;
 
-        public NetConnection(Socket socket)
+        public NetConnection(Socket socket, EventHandler<ConnectionStatusChangedEventArgs> statusChanged)
         {
             connection = socket;
             remoteId = Guid.NewGuid();
-            status = NetConnectionStatus.Connected;
             receiverTask = null;
+
+            //status
+            StatusChanged += statusChanged;
+            OnStatusChanged(NetConnectionStatus.Connected);
 
             //Dispose
             disposed = false;
+            disposeLock = new object();
 
             //Sender
             senderLock = new object();
@@ -79,7 +84,12 @@ namespace Amion.Network
         /// </summary>
         public void StartReceiverTask()
         {
-            if (receiverTask == null) receiverTask = Task.Factory.StartNew(ReceiverWorker, TaskCreationOptions.LongRunning);
+            if (status == NetConnectionStatus.Disconnected) return;
+
+            if (receiverTask == null)
+            {
+                receiverTask = Task.Factory.StartNew(ReceiverWorker, TaskCreationOptions.LongRunning);
+            }
         }
 
         /// <summary>
@@ -250,35 +260,38 @@ namespace Amion.Network
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing && !disposed)
+            lock (disposeLock)
             {
-                disposed = true;
-                OnStatusChanged(NetConnectionStatus.Disconnected);
-
-                try
+                if (disposing && !disposed)
                 {
-                    connection.Shutdown(SocketShutdown.Both);
-                    connection.Disconnect(false);
-                }
-                catch (Exception) { }
+                    disposed = true;
+                    OnStatusChanged(NetConnectionStatus.Disconnected);
 
-                if (senderLoop)
-                {
-                    senderLoop = false;
-                    messageSentEvent?.Set();
-                    senderTask?.Wait();
-                }
+                    try
+                    {
+                        connection.Shutdown(SocketShutdown.Both);
+                        connection.Disconnect(false);
+                    }
+                    catch (Exception) { }
 
-                if (connection != null)
-                {
-                    connection.Dispose();
-                    connection = null;
-                }
+                    if (senderLoop)
+                    {
+                        senderLoop = false;
+                        messageSentEvent?.Set();
+                        senderTask?.Wait();
+                    }
 
-                if (messageSentEvent != null)
-                {
-                    messageSentEvent.Dispose();
-                    messageSentEvent = null;
+                    if (connection != null)
+                    {
+                        connection.Dispose();
+                        connection = null;
+                    }
+
+                    if (messageSentEvent != null)
+                    {
+                        messageSentEvent.Dispose();
+                        messageSentEvent = null;
+                    }
                 }
             }
         }

@@ -141,24 +141,19 @@ namespace Amion.Network
                 if (newConnection == null || !newConnection.Connected) break; ;
 
                 newConnection.NoDelay = UseNoDelay;
-                var netCon = new NetConnection(newConnection);
+                var netCon = new NetConnection(newConnection, OnConnectionStatusChanged);
 
-                if (Connections.TryAdd(netCon.RemoteId, netCon))
+                if (netCon != null && Connections.TryAdd(netCon.RemoteId, netCon))
                 {
                     OnConnectionAdded(netCon);
-                    netCon.StatusChanged += OnConnectionStatusChanged;
-                    OnConnectionStatusChanged(netCon, netCon.Status, netCon.RemoteId);
                 }
                 else
                 {
                     Error(ECode.Server_FailedConnectionAdd);
-                    netCon.Dispose();
+                    netCon?.Dispose();
                 }
                 
-                if (netCon.Status != NetConnectionStatus.Disconnected && AutoStartReceiver)
-                {
-                    netCon.StartReceiverTask();
-                }
+                if (AutoStartReceiver) netCon?.StartReceiverTask();
             }
 
             Log("Connection accepter shut down.");

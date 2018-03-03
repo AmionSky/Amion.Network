@@ -10,9 +10,8 @@ namespace Amion.Network
     /// </summary>
     public class NetClient : NetShared, IDisposable
     {
-        public NetConnection Connection => connection;
-
-        private NetConnection connection = null;
+        public NetConnection Connection { get; private set; } = null;
+        
         private object connectLock = new object();
 
         public NetClient()
@@ -45,17 +44,21 @@ namespace Amion.Network
                     return;
                 }
 
-                connection?.Dispose();
-                connection = new NetConnection(clientSocket);
-                OnConnectionAdded(connection);
-                connection.StatusChanged += OnConnectionStatusChanged;
-                OnConnectionStatusChanged(connection, connection.Status, connection.RemoteId);
+                Connection?.Dispose();
+                Connection = new NetConnection(clientSocket, OnConnectionStatusChanged);
 
-                if (connection.Status != NetConnectionStatus.Disconnected && AutoStartReceiver)
-                {
-                    connection.StartReceiverTask();
-                }
+                OnConnectionAdded(Connection);
+
+                if (AutoStartReceiver) Connection?.StartReceiverTask();
             }
+        }
+
+        /// <summary>
+        /// Disconnects from the current connection.
+        /// </summary>
+        public void Disconnect()
+        {
+            Connection?.Dispose();
         }
 
         private void NetClient_ConnectionStatusChanged(object sender, ConnectionStatusChangedEventArgs e)
@@ -64,11 +67,11 @@ namespace Amion.Network
 
             if (e.Status == NetConnectionStatus.Disconnected)
             {
-                if (e.RemoteId == connection?.RemoteId)
+                if (Connection != null && e.RemoteId == Connection.RemoteId)
                 {
-                    OnConnectionRemoved(connection.RemoteId);
-                    connection.StatusChanged -= OnConnectionStatusChanged;
-                    connection = null;
+                    OnConnectionRemoved(Connection.RemoteId);
+                    Connection.StatusChanged -= OnConnectionStatusChanged;
+                    Connection = null;
                 }
             }
         }
@@ -83,10 +86,10 @@ namespace Amion.Network
         {
             if (disposing)
             {
-                if (connection != null)
+                if (Connection != null)
                 {
-                    connection.Dispose();
-                    connection = null;
+                    Connection.Dispose();
+                    Connection = null;
                 }
             }
         }
