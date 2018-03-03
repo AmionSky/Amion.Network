@@ -21,17 +21,19 @@ namespace Amion.Network
         public bool AutoStartReceiver = true;
 
         /// <summary>
-        /// Called when established a new connection
+        /// Called when established a new connection.
         /// </summary>
         public event EventHandler<ConnectionAddedEventArgs> ConnectionAdded;
 
         /// <summary>
-        /// Called while disconnecting
+        /// Called after disconnecting.
         /// </summary>
         public event EventHandler<ConnectionRemovedEventArgs> ConnectionRemoved;
 
         /// <summary>
-        /// Called when a status of a NetConnection changed
+        /// Called when a status of a NetConnection changed.
+        /// Use ConnectionAdded / ConnectionRemoved for program logic.
+        /// Called before ConnectionAdded. Called around at the same time with ConnectionRemoved.
         /// </summary>
         public event EventHandler<ConnectionStatusChangedEventArgs> ConnectionStatusChanged;
 
