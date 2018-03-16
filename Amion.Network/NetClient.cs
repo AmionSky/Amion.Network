@@ -6,14 +6,18 @@ using System.Threading.Tasks;
 namespace Amion.Network
 {
     /// <summary>
-    /// Class for handling a single connection
+    /// Class for handling a single connection.
     /// </summary>
     public class NetClient : NetShared, IDisposable
     {
+        /// <summary>
+        /// Current connection.
+        /// </summary>
         public NetConnection Connection { get; private set; } = null;
         
         private object connectLock = new object();
 
+        /// <summary></summary>
         public NetClient()
         {
             ConnectionStatusChanged += NetClient_ConnectionStatusChanged;
@@ -76,12 +80,18 @@ namespace Amion.Network
             }
         }
 
+        /// <summary>
+        /// Disconnects and releases resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

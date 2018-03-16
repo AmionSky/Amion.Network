@@ -48,9 +48,7 @@ namespace Amion.Network
 
         private int MsgValidator(bool isServer) => (isServer) ? MV_Server : MV_Client;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary></summary>
         /// <param name="isServer">Is it for a server.</param>
         /// <param name="responseAction">Action to invoke on successful match. Pass null to just send response message.</param>
         /// <param name="prefAddressFamily">Preferred address family</param>
@@ -66,6 +64,9 @@ namespace Amion.Network
             CreateSocket();
         }
 
+        /// <summary>
+        /// Starts/Restarts the respose service
+        /// </summary>
         public void StartResponseService()
         {
             lock (serviceLock)
@@ -83,6 +84,9 @@ namespace Amion.Network
             }
         }
 
+        /// <summary>
+        /// Stops the response service and recreates socket discovery socket.
+        /// </summary>
         public void StopResponseService()
         {
             DestroySocket();
@@ -92,11 +96,19 @@ namespace Amion.Network
             CreateSocket();
         }
 
+        /// <summary>
+        /// Returns true if the service thread is running.
+        /// </summary>
         public bool IsServiceRunning()
         {
             return responseLoop;
         }
 
+        /// <summary>
+        /// Sends a discovery message.
+        /// </summary>
+        /// <param name="endPoint">Where to send. If null uses Broadcast and the DiscoveryPort.</param>
+        /// <returns></returns>
         public bool SendDiscoveryMessage(EndPoint endPoint = null)
         {
             if (endPoint == null) endPoint = new IPEndPoint(IPAddress.Broadcast, DiscoveryPort);
@@ -204,12 +216,18 @@ namespace Amion.Network
             else return BitConverter.ToInt32(message, 12);
         }
 
+        /// <summary>
+        /// Shuts down worker thread and releases resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

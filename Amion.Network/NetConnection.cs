@@ -57,6 +57,9 @@ namespace Amion.Network
         /// </summary>
         public EndPoint RemoteEndPoint => connection.RemoteEndPoint;
 
+        /// <summary></summary>
+        /// <param name="socket">Socket of the connection</param>
+        /// <param name="statusChanged">EventHandler for status changed</param>
         public NetConnection(Socket socket, EventHandler<ConnectionStatusChangedEventArgs> statusChanged)
         {
             connection = socket;
@@ -231,11 +234,17 @@ namespace Amion.Network
         }
 
         // Events
+        /// <summary>
+        /// Invokes RawMessageReceived event.
+        /// </summary>
         protected void OnRawMessageReceived(NetInMessage message)
         {
             RawMessageReceived?.Invoke(this, new MessageReceivedEventArgs(message, RemoteId));
         }
 
+        /// <summary>
+        /// Updates status and invokes StatusChanged event.
+        /// </summary>
         protected void OnStatusChanged(NetConnectionStatus newStatus)
         {
             if (status != newStatus)
@@ -252,12 +261,18 @@ namespace Amion.Network
         [Obsolete("Use Dispose() instead")]
         public void Disconnect() => Dispose();
 
+        /// <summary>
+        /// Disconnects. Shuts down worker threads and releases resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             lock (disposeLock)
