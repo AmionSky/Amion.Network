@@ -32,6 +32,7 @@ namespace Amion.Network
         /// </summary>
         public int ListenerPort => (listener?.LocalEndPoint as IPEndPoint)?.Port ?? 0;
 
+        /// <summary></summary>
         public NetServer()
         {
             Connections = new ConcurrentDictionary<Guid, NetConnection>();
@@ -117,6 +118,10 @@ namespace Amion.Network
             return listener;
         }
 
+        /// <summary>
+        /// Invokes ListenerStatusChanged event.
+        /// </summary>
+        /// <param name="isActive">Is the listener socket active</param>
         protected virtual void OnListenerStatusChanged(bool isActive)
         {
             ListenerStatusChanged?.Invoke(this, new ListenerStatusEventArgs(isActive));
@@ -179,13 +184,18 @@ namespace Amion.Network
             }
         }
 
-        // Other
+        /// <summary>
+        /// Shuts down worker thread and releases resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
