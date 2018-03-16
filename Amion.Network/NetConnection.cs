@@ -7,13 +7,30 @@ using System.Threading.Tasks;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// Status enum for NetConnection.
+    /// </summary>
     public enum NetConnectionStatus : byte
     {
+        /// <summary>
+        /// Should only be unknown when invalid/uninitialized.
+        /// </summary>
         Unknown = 0,
+
+        /// <summary>
+        /// The connection is disconnected.
+        /// </summary>
         Disconnected = 4,
+
+        /// <summary>
+        /// The connection is connected.
+        /// </summary>
         Connected = 8,
     }
 
+    /// <summary>
+    /// Class for connection. Handles: socket, status changes, NetMessage send and receive.
+    /// </summary>
     public class NetConnection : NetUtility, IDisposable
     {
         /// <summary>
