@@ -3,6 +3,9 @@ using System.Net.Sockets;
 
 namespace Amion.Network
 {
+    /// <summary>
+    /// Base class for NetServer and NetClient.
+    /// </summary>
     public abstract class NetShared : NetUtility
     {
         /// <summary>
@@ -39,28 +42,51 @@ namespace Amion.Network
 
         #region Events
 
+        /// <summary>
+        /// Invokes ConnectionAdded event.
+        /// </summary>
         protected virtual void OnConnectionAdded(ConnectionAddedEventArgs e)
         {
             ConnectionAdded?.Invoke(this, e);
         }
+        /// <summary>
+        /// Invokes ConnectionAdded event.
+        /// </summary>
+        /// <param name="netConnection">The new connection</param>
         protected virtual void OnConnectionAdded(NetConnection netConnection)
         {
             ConnectionAdded?.Invoke(this, new ConnectionAddedEventArgs(netConnection));
         }
 
+        /// <summary>
+        /// Invokes ConnectionRemoved event.
+        /// </summary>
         protected virtual void OnConnectionRemoved(ConnectionRemovedEventArgs e)
         {
             ConnectionRemoved?.Invoke(this, e);
         }
+        /// <summary>
+        /// Invokes ConnectionRemoved event.
+        /// </summary>
+        /// <param name="remoteId">The remote ID of the removed connection</param>
         protected virtual void OnConnectionRemoved(Guid remoteId)
         {
             ConnectionRemoved?.Invoke(this, new ConnectionRemovedEventArgs(remoteId));
         }
 
+        /// <summary>
+        /// Invokes ConnectionStatusChanged event.
+        /// </summary>
         protected virtual void OnConnectionStatusChanged(object sender, ConnectionStatusChangedEventArgs e)
         {
             ConnectionStatusChanged?.Invoke(sender, e);
         }
+        /// <summary>
+        /// Invokes ConnectionStatusChanged event.
+        /// </summary>
+        /// <param name="sender">NetConnection</param>
+        /// <param name="status">The current status of the connection</param>
+        /// <param name="remoteId">The remote ID of the connection</param>
         protected virtual void OnConnectionStatusChanged(object sender, NetConnectionStatus status, Guid remoteId)
         {
             ConnectionStatusChanged?.Invoke(sender, new ConnectionStatusChangedEventArgs(status, remoteId));
