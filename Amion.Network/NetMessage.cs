@@ -43,7 +43,7 @@ namespace Amion.Network
         /// <summary>
         /// The size of the header part of the message (in bytes).
         /// </summary>
-        protected const int HeaderSize = 5;
+        public const int HeaderSize = 5;
 
         /// <summary>
         /// A List containing the message.
