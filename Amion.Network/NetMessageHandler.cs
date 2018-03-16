@@ -20,6 +20,7 @@ namespace Amion.Network
         /// </summary>
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
 
+        /// <summary></summary>
         public NetMessageHandler()
         {
             receivedMessages = new ConcurrentQueue<MessageReceivedEventArgs>();
@@ -80,17 +81,26 @@ namespace Amion.Network
             messageReceivedEvent.Set();
         }
 
+        /// <summary>
+        /// Invokes MessageReceived event.
+        /// </summary>
         protected void OnMessageReceived(MessageReceivedEventArgs e)
         {
             MessageReceived?.Invoke(this, e);
         }
 
+        /// <summary>
+        /// Shuts down worker thread and releases resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
