@@ -74,6 +74,8 @@ namespace Amion.Network
         private bool disposed;
         private object disposeLock;
 
+        private int receiverBufferSize;
+
         private object senderLock;
         private bool senderLoop;
         private ConcurrentQueue<byte[]> messageQueue;
@@ -82,11 +84,13 @@ namespace Amion.Network
         /// <summary></summary>
         /// <param name="socket">Socket of the connection</param>
         /// <param name="statusChanged">EventHandler for status changed</param>
-        public NetConnection(Socket socket, EventHandler<ConnectionStatusChangedEventArgs> statusChanged)
+        public NetConnection(Socket socket, EventHandler<ConnectionStatusChangedEventArgs> statusChanged, int receiverBufferSize = 1024)
         {
             connection = socket;
             remoteId = Guid.NewGuid();
             receiverTask = null;
+
+            this.receiverBufferSize = receiverBufferSize;
 
             //status
             StatusChanged += statusChanged;
@@ -137,26 +141,21 @@ namespace Amion.Network
         /// <param name="message">Message to send.</param>
         public void SendSynchronously(NetOutMessage message)
         {
-            if (disposed) return;
-
-            byte[] msg = message.ToArray();
-
-            SocketSend(msg);
+            SocketSend(message.ToArray());
         }
 
         private void SocketSend(byte[] msg)
         {
-            try
+            lock (senderLock)
             {
-                lock (senderLock)
+                if (disposed) return;
+
+                try { connection.Send(msg); }
+                catch (Exception)
                 {
-                    connection.Send(msg);
+                    Log("Send: Exception");
+                    if (!disposed) Dispose();
                 }
-            }
-            catch (Exception)
-            {
-                Log("Send: Exception");
-                if (!disposed) Dispose();
             }
         }
 
@@ -174,7 +173,7 @@ namespace Amion.Network
                     }
                 }
 
-                messageSentEvent.WaitOne();
+                messageSentEvent?.WaitOne();
             }
         }
 
@@ -188,17 +187,16 @@ namespace Amion.Network
             byte[] messageData = null;
             bool messageStarted = false;
 
-            byte[] buffer = new byte[2048];
+            byte[] buffer = new byte[receiverBufferSize];
             int bytesRead = -1;
             int bufferCursor = 0;
             int amountToCopy = 0;
 
-            //while (connection.Connected)
             while (bytesRead != 0)
             {
                 //Reading data from connection with disconnect detector
                 try { bytesRead = connection.Receive(buffer); }
-                catch { Log("Connection lost."); bytesRead = 0; }
+                catch { Log("Connection lost."); break; }
                 bufferCursor = 0;
 
                 while (bufferCursor < bytesRead)
@@ -255,7 +253,6 @@ namespace Amion.Network
             Dispose();
         }
 
-        // Events
         /// <summary>
         /// Invokes RawMessageReceived event.
         /// </summary>
@@ -276,7 +273,6 @@ namespace Amion.Network
             }
         }
 
-        // Dispose
         /// <summary>
         /// Disconnects the socket. Same as Dispose().
         /// </summary>
@@ -311,23 +307,19 @@ namespace Amion.Network
                     }
                     catch (Exception) { }
 
-                    if (senderLoop)
+                    senderLoop = false;
+
+                    if (messageSentEvent != null)
                     {
-                        senderLoop = false;
-                        messageSentEvent?.Set();
-                        senderTask?.Wait();
+                        messageSentEvent.Set();
+                        messageSentEvent.Dispose();
+                        messageSentEvent = null;
                     }
 
                     if (connection != null)
                     {
                         connection.Dispose();
                         connection = null;
-                    }
-
-                    if (messageSentEvent != null)
-                    {
-                        messageSentEvent.Dispose();
-                        messageSentEvent = null;
                     }
                 }
             }
