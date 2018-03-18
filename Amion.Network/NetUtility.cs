@@ -21,6 +21,10 @@ namespace Amion.Network
         Server_FailedToBindListener,
         /// <summary>Server: Failed to create the listener socket.</summary>
         Server_FailedToCreateListenerSocket,
+        /// <summary>Client: Failed to create the connection socket.</summary>
+        Client_FailedToCreateConnectionSocket,
+        /// <summary>Client: Failed to connect to specified IPEndPoint.</summary>
+        Client_FailedToConnect,
     }
 
     /// <summary>

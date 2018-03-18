@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace Amion.Network
 {
@@ -29,28 +28,34 @@ namespace Amion.Network
         /// <param name="ipEndPoint">IP to connect to</param>
         public void Connect(IPEndPoint ipEndPoint)
         {
-            if (ipEndPoint == null) { Log("Connect: IPEndPoint is null"); return; }
+            if (ipEndPoint == null) { Log("IPEndPoint is null"); return; }
 
             lock (connectLock)
             {
-                Socket clientSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
-                {
-                    NoDelay = UseNoDelay
-                };
+                Socket clientSocket = null;
 
-                try
+                try { clientSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp); }
+                catch (SocketException ex)
                 {
-                    clientSocket.Connect(ipEndPoint);
+                    Log(NetUtility.Error(ECode.Client_FailedToCreateConnectionSocket));
+                    Log(ex.Message);
+                    clientSocket?.Dispose();
+                    return;
                 }
+
+                clientSocket.NoDelay = UseNoDelay;
+
+                try { clientSocket.Connect(ipEndPoint); }
                 catch (Exception ex)
                 {
-                    Log("Connect: " + ex.Message);
+                    Log(NetUtility.Error(ECode.Client_FailedToConnect));
+                    Log(ex.Message);
+                    clientSocket?.Dispose();
                     return;
                 }
 
                 Connection?.Dispose();
                 Connection = new NetConnection(clientSocket, OnConnectionStatusChanged);
-
                 OnConnectionAdded(Connection);
 
                 if (AutoStartReceiver) Connection?.StartReceiverTask();
@@ -62,7 +67,11 @@ namespace Amion.Network
         /// </summary>
         public void Disconnect()
         {
-            Connection?.Dispose();
+            if (Connection != null)
+            {
+                Connection.Dispose();
+                Connection = null;
+            }
         }
 
         private void NetClient_ConnectionStatusChanged(object sender, ConnectionStatusChangedEventArgs e)
@@ -96,11 +105,7 @@ namespace Amion.Network
         {
             if (disposing)
             {
-                if (Connection != null)
-                {
-                    Connection.Dispose();
-                    Connection = null;
-                }
+                Disconnect();
             }
         }
     }
