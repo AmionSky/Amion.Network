@@ -40,9 +40,9 @@ namespace Amion.Network
         /// <summary>
         /// Starts/restarts the listener on a Local IP.
         /// </summary>
+        /// <param name="listenerEndPoint">Listener IP end point. If null it uses LAN IP with any available port.</param>
         /// <param name="backlog">The maximum length of the pending connections queue.</param>
-        /// <param name="listenerPort">Port of the listener. 0 means any available port.</param>
-        public void StartListener(int backlog = 10, int listenerPort = 0)
+        public void StartListener(IPEndPoint listenerEndPoint = null, int backlog = 10)
         {
             //Stops the listener if there is any.
             StopListener();
@@ -51,17 +51,22 @@ namespace Amion.Network
             listener = new Socket(PreferredAddressFamily, SocketType.Stream, ProtocolType.Tcp);
             Log("Listener socket created.");
 
-            //Get local IP address
-            IPAddress localIP = GetLocalIPAddress(PreferredAddressFamily);
-            if (localIP == null)
+            if (listenerEndPoint == null)
             {
-                Error(ECode.Server_LocalIPNotFound);
-                Log("Listener startup aborted!");
-                return;
+                //Get local IP address
+                IPAddress localIP = GetLocalIPAddress(PreferredAddressFamily);
+                if (localIP == null)
+                {
+                    Error(ECode.Server_LocalIPNotFound);
+                    Log("Listener startup aborted!");
+                    return;
+                }
+
+                listenerEndPoint = new IPEndPoint(localIP, 0);
             }
 
             //Bind the socket to the local IP address.
-            try { listener.Bind(new IPEndPoint(localIP, listenerPort)); }
+            try { listener.Bind(listenerEndPoint); }
             catch { Error(ECode.Server_FailedToBindListener); return; }
             IPEndPoint ipEndPoint = (IPEndPoint)listener.LocalEndPoint;
             Log($"Listener socket bound to {ipEndPoint.Address}:{ipEndPoint.Port}");
