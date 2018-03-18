@@ -49,9 +49,10 @@ namespace Amion.Network
 
             //Create a socket for the listener server.
             try { listener = new Socket(PreferredAddressFamily, SocketType.Stream, ProtocolType.Tcp); }
-            catch (SocketException)
+            catch (SocketException ex)
             {
                 Log(NetUtility.Error(ECode.Server_LocalIPNotFound));
+                Log(ex.Message);
                 StopListener();
                 return;
             }
@@ -74,9 +75,10 @@ namespace Amion.Network
 
             //Bind the socket to the local IP address.
             try { listener.Bind(listenerEndPoint); }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Log(NetUtility.Error(ECode.Server_FailedToBindListener));
+                Log(ex.Message);
                 StopListener();
                 return;
             }
