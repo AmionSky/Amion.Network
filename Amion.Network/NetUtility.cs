@@ -11,14 +11,16 @@ namespace Amion.Network
     /// </summary>
     public enum ECode
     {
-        /// <summary>Server only: Failed to add connection.</summary>
+        /// <summary>Server: Failed to add connection.</summary>
         Server_FailedConnectionAdd,
-        /// <summary>Server only: Failed to remove connection.</summary>
+        /// <summary>Server: Failed to remove connection.</summary>
         Server_FailedConnectionRemove,
-        /// <summary>Server only: Failed to find a local IP address.</summary>
+        /// <summary>Server: Failed to find a local IP address.</summary>
         Server_LocalIPNotFound,
-        /// <summary>Server only: Failed to bind the listener socket.</summary>
+        /// <summary>Server: Failed to bind the listener socket.</summary>
         Server_FailedToBindListener,
+        /// <summary>Server: Failed to create the listener socket.</summary>
+        Server_FailedToCreateListenerSocket,
     }
 
     /// <summary>

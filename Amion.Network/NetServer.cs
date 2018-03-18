@@ -48,7 +48,14 @@ namespace Amion.Network
             StopListener();
 
             //Create a socket for the listener server.
-            listener = new Socket(PreferredAddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            try { listener = new Socket(PreferredAddressFamily, SocketType.Stream, ProtocolType.Tcp); }
+            catch
+            {
+                Log(NetUtility.Error(ECode.Server_LocalIPNotFound));
+                StopListener();
+                return;
+            }
+            
             Log("Listener socket created.");
 
             if (listenerEndPoint == null)
@@ -57,8 +64,7 @@ namespace Amion.Network
                 IPAddress localIP = NetUtility.GetLocalIPAddress(PreferredAddressFamily);
                 if (localIP == null)
                 {
-                    Log(NetUtility.Error(ECode.Server_LocalIPNotFound));
-                    Log("Listener startup aborted!");
+                    Log(NetUtility.Error(ECode.Server_FailedToCreateListenerSocket));
                     StopListener();
                     return;
                 }
