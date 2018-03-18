@@ -25,6 +25,12 @@ namespace Amion.Network
         Client_FailedToCreateConnectionSocket,
         /// <summary>Client: Failed to connect to specified IPEndPoint.</summary>
         Client_FailedToConnect,
+        /// <summary>Discovery: MessageDecoder: Application ID not matching.</summary>
+        Discovery_Msg_IncorrectAppId,
+        /// <summary>Discovery: MessageDecoder: Approval Number not matching.</summary>
+        Discovery_Msg_IncorrectAppNum,
+        /// <summary>Discovery: MessageDecoder: Validator not matching.</summary>
+        Discovery_Msg_FailedValidation,
     }
 
     /// <summary>

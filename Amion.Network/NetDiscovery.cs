@@ -11,7 +11,7 @@ namespace Amion.Network
     public class NetDiscovery : IDisposable
     {
         /// <summary>
-        /// The port on which it performs the discovery
+        /// The port on which it performs the discovery.
         /// </summary>
         public int DiscoveryPort = 4356;
 
@@ -21,7 +21,7 @@ namespace Amion.Network
         public int ApplicationId = 42;
 
         /// <summary>
-        /// Approval number of the application. Should be different for every app major version.
+        /// Approval number of the application. Should be different for every app version which has different network logic.
         /// </summary>
         public int ApprovalNumber = 111;
 
@@ -29,6 +29,11 @@ namespace Amion.Network
         /// Extra 4 bytes of data to broadcast.
         /// </summary>
         public int MessageData = 0;
+
+        /// <summary>
+        /// Log issues on validation fail.
+        /// </summary>
+        public bool LogValidationIssues = false;
 
         /// <summary>
         /// Log action.
@@ -205,17 +210,17 @@ namespace Amion.Network
         {
             if (ApplicationId != BitConverter.ToInt32(message, 0))
             {
-                //Discovery_Msg_IncorrectAppId
+                if (LogValidationIssues) Log(NetUtility.Error(ECode.Discovery_Msg_IncorrectAppId));
                 return -1;
             }
             else if (ApprovalNumber != BitConverter.ToInt32(message, 4))
             {
-                //Discovery_Msg_IncorrectAppNum
+                if (LogValidationIssues) Log(NetUtility.Error(ECode.Discovery_Msg_IncorrectAppNum));
                 return -2;
             }
             else if (validator != BitConverter.ToInt32(message, 8))
             {
-                //Discovery_Msg_FailedValidation
+                if (LogValidationIssues) Log(NetUtility.Error(ECode.Discovery_Msg_FailedValidation));
                 return -3;
             }
             else return BitConverter.ToInt32(message, 12);
