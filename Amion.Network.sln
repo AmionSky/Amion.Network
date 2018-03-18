@@ -10,8 +10,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SimpleChatApp", "SimpleChatApp", "{C0FEF1AF-5151-4946-9A76-11E5B3969A0E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatClient", "Samples\SimpleChatApp\ChatClient\ChatClient.csproj", "{1B4E64D1-26FF-4FE8-8465-3968156AE68F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{986A1416-C01D-412F-A209-492ED40B9241} = {986A1416-C01D-412F-A209-492ED40B9241}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatServer", "Samples\SimpleChatApp\ChatServer\ChatServer.csproj", "{E3FF02FD-36F5-4205-9E54-1DCE7DB3D188}"
+	ProjectSection(ProjectDependencies) = postProject
+		{986A1416-C01D-412F-A209-492ED40B9241} = {986A1416-C01D-412F-A209-492ED40B9241}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
