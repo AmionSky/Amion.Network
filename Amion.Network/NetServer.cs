@@ -54,11 +54,12 @@ namespace Amion.Network
             if (listenerEndPoint == null)
             {
                 //Get local IP address
-                IPAddress localIP = GetLocalIPAddress(PreferredAddressFamily);
+                IPAddress localIP = NetUtility.GetLocalIPAddress(PreferredAddressFamily);
                 if (localIP == null)
                 {
-                    Error(ECode.Server_LocalIPNotFound);
+                    Log(NetUtility.Error(ECode.Server_LocalIPNotFound));
                     Log("Listener startup aborted!");
+                    StopListener();
                     return;
                 }
 
@@ -67,9 +68,15 @@ namespace Amion.Network
 
             //Bind the socket to the local IP address.
             try { listener.Bind(listenerEndPoint); }
-            catch { Error(ECode.Server_FailedToBindListener); return; }
-            IPEndPoint ipEndPoint = (IPEndPoint)listener.LocalEndPoint;
-            Log($"Listener socket bound to {ipEndPoint.Address}:{ipEndPoint.Port}");
+            catch
+            {
+                Log(NetUtility.Error(ECode.Server_FailedToBindListener));
+                StopListener();
+                return;
+            }
+
+            listenerEndPoint = (IPEndPoint)listener.LocalEndPoint;
+            Log($"Listener socket bound to {listenerEndPoint.Address}:{listenerEndPoint.Port}");
 
             //Start the listening.
             listener.Listen(backlog);
@@ -86,13 +93,21 @@ namespace Amion.Network
         /// </summary>
         public void StopListener()
         {
-            listener?.Dispose();
-            listener = null;
-            accepterTask?.Wait();
+            if (listener != null)
+            {
+                listener.Dispose();
+                listener = null;
+
+                if (accepterTask != null)
+                {
+                    accepterTask.Wait();
+                    accepterTask = null;
+                }
+            }
         }
 
         /// <summary>
-        /// Disconnects from all connections
+        /// Disconnects all connections
         /// </summary>
         public void DisconnectAll()
         {
@@ -103,9 +118,8 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Is listener running
+        /// Gets if the listener is running
         /// </summary>
-        /// <returns></returns>
         public bool IsListenerRunning()
         {
             return (listener != null) ? listener.IsBound : false;
@@ -114,7 +128,6 @@ namespace Amion.Network
         /// <summary>
         /// Gets the listener socket
         /// </summary>
-        /// <returns></returns>
         public Socket GetListener()
         {
             return listener;
@@ -156,7 +169,7 @@ namespace Amion.Network
                 }
                 else
                 {
-                    Error(ECode.Server_FailedConnectionAdd);
+                    Log(NetUtility.Error(ECode.Server_FailedConnectionAdd));
                     netCon?.Dispose();
                 }
                 
@@ -182,7 +195,7 @@ namespace Amion.Network
                     OnConnectionRemoved(e.RemoteId);
                     Log("Connection removed: Guid: " + e.RemoteId);
                 }
-                else Error(ECode.Server_FailedConnectionRemove);
+                else Log(NetUtility.Error(ECode.Server_FailedConnectionRemove));
             }
         }
 
@@ -202,13 +215,8 @@ namespace Amion.Network
         {
             if (disposing)
             {
+                StopListener();
                 DisconnectAll();
-
-                if (listener != null)
-                {
-                    listener.Dispose();
-                    listener = null;
-                }
             }
         }
     }

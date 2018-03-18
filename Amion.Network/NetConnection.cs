@@ -31,7 +31,7 @@ namespace Amion.Network
     /// <summary>
     /// Class for connection. Handles: socket, status changes, NetMessage send and receive.
     /// </summary>
-    public class NetConnection : NetUtility, IDisposable
+    public class NetConnection : IDisposable
     {
         /// <summary>
         /// Called when a Message is received from the connection.
@@ -43,21 +43,6 @@ namespace Amion.Network
         /// Called when status changed. Use NetServer or NetClient ConnectionStatusChanged event instead of this.
         /// </summary>
         public event EventHandler<ConnectionStatusChangedEventArgs> StatusChanged;
-
-        private NetConnectionStatus status = NetConnectionStatus.Unknown;
-        private Guid remoteId;
-
-        private Socket connection;
-        private Task receiverTask;
-        private Task senderTask;
-
-        private bool disposed;
-        private object disposeLock;
-
-        private object senderLock;
-        private bool senderLoop;
-        private ConcurrentQueue<byte[]> messageQueue;
-        private AutoResetEvent messageSentEvent;
 
         /// <summary>
         /// Current status of the connection.
@@ -73,6 +58,26 @@ namespace Amion.Network
         /// Gets the remote endpoint.
         /// </summary>
         public EndPoint RemoteEndPoint => connection.RemoteEndPoint;
+
+        /// <summary>
+        /// Log action.
+        /// </summary>
+        public Action<string> Log = NetUtility.Log;
+
+        private NetConnectionStatus status = NetConnectionStatus.Unknown;
+        private Guid remoteId;
+
+        private Socket connection;
+        private Task receiverTask;
+        private Task senderTask;
+
+        private bool disposed;
+        private object disposeLock;
+
+        private object senderLock;
+        private bool senderLoop;
+        private ConcurrentQueue<byte[]> messageQueue;
+        private AutoResetEvent messageSentEvent;
 
         /// <summary></summary>
         /// <param name="socket">Socket of the connection</param>

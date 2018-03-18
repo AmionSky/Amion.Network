@@ -24,22 +24,22 @@ namespace Amion.Network
     /// <summary>
     /// Miscellaneous static methods used by classes.
     /// </summary>
-    public abstract class NetUtility
+    public static class NetUtility
     {
         /// <summary>
         /// Log an error.
         /// </summary>
         /// <param name="code">Error code enum</param>
-        protected static void Error(ECode code)
+        public static string Error(ECode code)
         {
-            Log($"Error #{((int)code).ToString("0000")}: {code}");
+            return $"Error #{((int)code).ToString("0000")}: {code}";
         }
 
         /// <summary>
         /// Log to console.
         /// </summary>
         /// <param name="text">Text to write</param>
-        protected static void Log(string text)
+        public static void Log(string text)
         {
             Console.WriteLine(text);
         }
@@ -49,7 +49,7 @@ namespace Amion.Network
         /// </summary>
         /// <param name="addressFamily">Address family to search for</param>
         /// <returns>LAN IP address</returns>
-        protected static IPAddress GetLocalIPAddress(AddressFamily addressFamily)
+        public static IPAddress GetLocalIPAddress(AddressFamily addressFamily)
         {
             return NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault
             (

@@ -8,7 +8,7 @@ namespace Amion.Network
     /// <summary>
     /// LAN discovery
     /// </summary>
-    public class NetDiscovery : NetUtility, IDisposable
+    public class NetDiscovery : IDisposable
     {
         /// <summary>
         /// The port on which it performs the discovery
@@ -29,6 +29,11 @@ namespace Amion.Network
         /// Extra 4 bytes of data to broadcast.
         /// </summary>
         public int MessageData = 0;
+
+        /// <summary>
+        /// Log action.
+        /// </summary>
+        public Action<string> Log = NetUtility.Log;
 
         private const int BufferSize = 16;
         private const int MV_Server = 792;

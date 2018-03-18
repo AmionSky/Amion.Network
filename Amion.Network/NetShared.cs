@@ -6,7 +6,7 @@ namespace Amion.Network
     /// <summary>
     /// Base class for NetServer and NetClient.
     /// </summary>
-    public abstract class NetShared : NetUtility
+    public abstract class NetShared
     {
         /// <summary>
         /// Preferred address family. Recommended to leave as default.
@@ -22,6 +22,11 @@ namespace Amion.Network
         /// Automatically start the message receiver. Don't use it if you didn't set up listening for raw incoming messages on ConnectionAdded event.
         /// </summary>
         public bool AutoStartReceiver = true;
+
+        /// <summary>
+        /// Log action.
+        /// </summary>
+        public Action<string> Log = NetUtility.Log;
 
         /// <summary>
         /// Called when established a new connection.
