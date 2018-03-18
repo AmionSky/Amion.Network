@@ -49,7 +49,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Amion.Network\Amion.Network.csproj">
+    <ProjectReference Include="..\..\..\Amion.Network\Amion.Network.csproj">
       <Project>{986a1416-c01d-412f-a209-492ed40b9241}</Project>
       <Name>Amion.Network</Name>
     </ProjectReference>
