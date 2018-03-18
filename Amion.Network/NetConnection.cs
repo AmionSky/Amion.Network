@@ -84,6 +84,7 @@ namespace Amion.Network
         /// <summary></summary>
         /// <param name="socket">Socket of the connection</param>
         /// <param name="statusChanged">EventHandler for status changed</param>
+        /// <param name="receiverBufferSize">Size of the network message receiver buffer in bytes</param>
         public NetConnection(Socket socket, EventHandler<ConnectionStatusChangedEventArgs> statusChanged, int receiverBufferSize = 1024)
         {
             connection = socket;
