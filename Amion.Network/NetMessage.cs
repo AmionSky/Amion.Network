@@ -165,6 +165,15 @@ namespace Amion.Network
         }
 
         /// <summary>
+        /// Writes a System.DateTime (as UTC-Ticks) at the end of the message using 8 bytes.
+        /// </summary>
+        public void Write(DateTime data)
+        {
+            long dateAsLong = data.ToUniversalTime().Ticks;
+            message.Write(BitConverter.GetBytes(dateAsLong), 0, sizeof(long));
+        }
+
+        /// <summary>
         /// Writes a bool at the end of the message using a byte.
         /// </summary>
         public void Write(bool data)
@@ -330,6 +339,16 @@ namespace Amion.Network
             UInt64 data = BitConverter.ToUInt64(messageData, readCursor);
             readCursor += sizeof(UInt64);
             return data;
+        }
+
+        /// <summary>
+        /// Reads a System.DateTime (as Ticks.ToLocalTime()) from the message and moves the readCursor.
+        /// </summary>
+        public DateTime ReadDateTime()
+        {
+            long data = BitConverter.ToInt64(messageData, readCursor);
+            readCursor += sizeof(long);
+            return new DateTime(data).ToLocalTime();
         }
 
         /// <summary>
