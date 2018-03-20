@@ -169,7 +169,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(bool data)
         {
-            message.Write(BitConverter.GetBytes(data), 0, sizeof(bool));
+            message.WriteByte(BitConverter.GetBytes(data)[0]);
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Writes a series of bytes at the end of the message.
+        /// Writes a byte array at the end of the message.
         /// </summary>
         public void Write(byte[] data)
         {
@@ -273,14 +273,22 @@ namespace Amion.Network
         }
 
         /// <summary>
+        /// Reads a short from the message and moves the readCursor.
+        /// </summary>
+        public Int16 ReadInt16()
+        {
+            Int16 data = BitConverter.ToInt16(messageData, readCursor);
+            readCursor += sizeof(Int16);
+            return data;
+        }
+
+        /// <summary>
         /// Reads an int from the message and moves the readCursor.
         /// </summary>
         public Int32 ReadInt32()
         {
             Int32 data = BitConverter.ToInt32(messageData, readCursor);
-
             readCursor += sizeof(Int32);
-
             return data;
         }
 
@@ -290,9 +298,37 @@ namespace Amion.Network
         public Int64 ReadInt64()
         {
             Int64 data = BitConverter.ToInt64(messageData, readCursor);
-
             readCursor += sizeof(Int64);
+            return data;
+        }
 
+        /// <summary>
+        /// Reads an unsigned short from the message and moves the readCursor.
+        /// </summary>
+        public UInt16 ReadUInt16()
+        {
+            UInt16 data = BitConverter.ToUInt16(messageData, readCursor);
+            readCursor += sizeof(UInt16);
+            return data;
+        }
+
+        /// <summary>
+        /// Reads an unsigned int from the message and moves the readCursor.
+        /// </summary>
+        public UInt32 ReadUInt32()
+        {
+            UInt32 data = BitConverter.ToUInt32(messageData, readCursor);
+            readCursor += sizeof(UInt32);
+            return data;
+        }
+
+        /// <summary>
+        /// Reads an unsigned long from the message and moves the readCursor.
+        /// </summary>
+        public UInt64 ReadUInt64()
+        {
+            UInt64 data = BitConverter.ToUInt64(messageData, readCursor);
+            readCursor += sizeof(UInt64);
             return data;
         }
 
@@ -302,9 +338,7 @@ namespace Amion.Network
         public bool ReadBoolean()
         {
             bool data = BitConverter.ToBoolean(messageData, readCursor);
-
             readCursor++;
-
             return data;
         }
 
@@ -314,9 +348,7 @@ namespace Amion.Network
         public byte ReadByte()
         {
             byte data = messageData[readCursor];
-
             readCursor++;
-
             return data;
         }
 
@@ -327,11 +359,8 @@ namespace Amion.Network
         public byte[] ReadBytes(int amount)
         {
             byte[] data = new byte[amount];
-
             Buffer.BlockCopy(messageData, readCursor, data, 0, amount);
-
             readCursor += amount;
-
             return data;
         }
 
@@ -342,9 +371,7 @@ namespace Amion.Network
         public ArraySegment<byte> ReadBytesAsSegment(int amount)
         {
             var arraySegment =  new ArraySegment<byte>(messageData, readCursor, amount);
-
             readCursor += amount;
-
             return arraySegment;
         }
 
@@ -355,11 +382,8 @@ namespace Amion.Network
         {
             const int guidSize = 16;
             byte[] data = new byte[guidSize];
-            
             Buffer.BlockCopy(messageData, readCursor, data, 0, guidSize);
-
             readCursor += guidSize;
-
             return new Guid(data);
         }
 
