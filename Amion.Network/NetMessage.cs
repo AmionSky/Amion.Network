@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Amion.Network
@@ -46,17 +48,22 @@ namespace Amion.Network
         public const int HeaderSize = 5;
 
         /// <summary>
-        /// A List containing the message.
+        /// A MemoryStream containing the message while its writeable.
         /// </summary>
-        protected List<byte> message;
+        protected MemoryStream message;
+
+        /// <summary>
+        /// A byte array containing the message after it finalized.
+        /// </summary>
+        protected byte[] messageArray = null;
 
         /// <summary></summary>
         /// <param name="msgType">The type of the message. Defaults to 'MessageType.Data'</param>
         public NetOutMessage(MessageType msgType = MessageType.Data)
         {
-            message = new List<byte>();
-            message.Add((byte)msgType);
-            message.AddRange(BitConverter.GetBytes((int)0));
+            message = new MemoryStream();
+            message.WriteByte((byte)msgType);
+            message.Write(BitConverter.GetBytes((int)0), 0, sizeof(int));
         }
 
         /// <summary>
@@ -64,12 +71,17 @@ namespace Amion.Network
         /// </summary>
         protected void FinalizeMessage()
         {
-            byte[] msgLength = BitConverter.GetBytes(message.Count - 5);
+            if (messageArray != null) return;
 
-            for (int i = 0; i < 4; i++)
-            {
-                message[i + 1] = msgLength[i];
-            }
+            byte[] msgLength = BitConverter.GetBytes((int)(message.Length - 5));
+            long msgPosition = message.Position;
+
+            message.Position = 1;
+            message.Write(msgLength, 0, sizeof(int));
+
+            messageArray = message.ToArray();
+
+            message.Dispose();
         }
 
         //---------------------------------------------------------------------
@@ -82,7 +94,7 @@ namespace Amion.Network
         public byte[] ToArray()
         {
             FinalizeMessage();
-            return message.ToArray();
+            return messageArray;
         }
 
         /// <summary>
@@ -107,8 +119,8 @@ namespace Amion.Network
         public void Write(String data)
         {
             byte[] bytes = Encoding.Unicode.GetBytes(data);
-            message.AddRange(BitConverter.GetBytes(bytes.Length));
-            message.AddRange(bytes);
+            message.Write(BitConverter.GetBytes(bytes.Length), 0, sizeof(int));
+            message.Write(bytes, 0, bytes.Length);
         }
 
         /// <summary>
@@ -116,7 +128,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(Int16 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(Int16));
         }
 
         /// <summary>
@@ -124,7 +136,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(Int32 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(Int32));
         }
 
         /// <summary>
@@ -132,7 +144,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(Int64 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(Int64));
         }
 
         /// <summary>
@@ -140,7 +152,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(UInt16 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(UInt16));
         }
 
         /// <summary>
@@ -148,7 +160,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(UInt32 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(UInt32));
         }
 
         /// <summary>
@@ -156,7 +168,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(UInt64 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(UInt64));
         }
 
         /// <summary>
@@ -164,7 +176,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(bool data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(bool));
         }
 
         /// <summary>
@@ -172,7 +184,15 @@ namespace Amion.Network
         /// </summary>
         public void Write(byte data)
         {
-            message.Add(data);
+            message.WriteByte(data);
+        }
+
+        /// <summary>
+        /// Writes a series of bytes at the end of the message.
+        /// </summary>
+        public void Write(byte[] data)
+        {
+            message.Write(data, 0, data.Length);
         }
 
         /// <summary>
@@ -180,7 +200,8 @@ namespace Amion.Network
         /// </summary>
         public void Write(IEnumerable<byte> data)
         {
-            message.AddRange(data);
+            var dataArray = data.ToArray();
+            message.Write(dataArray, 0, dataArray.Length);
         }
 
         /// <summary>
@@ -188,7 +209,31 @@ namespace Amion.Network
         /// </summary>
         public void Write(Guid data)
         {
-            message.AddRange(data.ToByteArray());
+            message.Write(data.ToByteArray(), 0, 16);
+        }
+
+        //---------------------------------------------------------------------
+        // Dispose
+        //---------------------------------------------------------------------
+
+        /// <summary>
+        /// Releases resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                message?.Dispose();
+            }
         }
     }
 
