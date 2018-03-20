@@ -57,6 +57,11 @@ namespace Amion.Network
         /// </summary>
         protected byte[] messageArray = null;
 
+        /// <summary>
+        /// Returns the message byte array. Null if the message hasn't been closed.
+        /// </summary>
+        public byte[] Array => messageArray;
+
         /// <summary></summary>
         /// <param name="msgType">The type of the message. Defaults to 'MessageType.Data'</param>
         public NetOutMessage(MessageType msgType = MessageType.Data)
@@ -67,11 +72,11 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Updates the message data length in the message.
+        /// Generates the final message as byte array and disposes the memory stream.
         /// </summary>
-        protected void FinalizeMessage()
+        public NetOutMessage Finish()
         {
-            if (messageArray != null) return;
+            if (messageArray != null) return this;
 
             byte[] msgLength = BitConverter.GetBytes((int)(message.Length - 5));
             long msgPosition = message.Position;
@@ -82,19 +87,7 @@ namespace Amion.Network
             messageArray = message.ToArray();
 
             message.Dispose();
-        }
-
-        //---------------------------------------------------------------------
-        // Internal methods
-        //---------------------------------------------------------------------
-
-        /// <summary>
-        /// Returns the message as a byte array.
-        /// </summary>
-        public byte[] ToArray()
-        {
-            FinalizeMessage();
-            return messageArray;
+            return this;
         }
 
         /// <summary>

@@ -130,9 +130,9 @@ namespace Amion.Network
         {
             if (disposed) return;
 
-            byte[] msg = message.ToArray();
-            
-            messageQueue.Enqueue(msg);
+            CheckMessage(message);
+
+            messageQueue.Enqueue(message.Array);
             messageSentEvent.Set();
         }
 
@@ -143,7 +143,16 @@ namespace Amion.Network
         /// <param name="message">Message to send.</param>
         public void SendSynchronously(NetOutMessage message)
         {
-            SocketSend(message.ToArray());
+            CheckMessage(message);
+            SocketSend(message.Array);
+        }
+
+        private void CheckMessage(NetOutMessage message)
+        {
+            if (message.Array == null)
+            {
+                throw new Exception("NetOutMessage's array is null. Did you Finish() the message?");
+            }
         }
 
         private void SocketSend(byte[] msg)
