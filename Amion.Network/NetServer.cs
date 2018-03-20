@@ -132,7 +132,7 @@ namespace Amion.Network
         {
             foreach (var connection in Connections)
             {
-                connection.Value?.Send(new NetOutMessage(MessageType.IsAlive));
+                connection.Value?.Send(new NetOutMessage(MessageType.IsAlive).Finish());
             }
         }
 

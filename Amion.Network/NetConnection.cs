@@ -110,7 +110,7 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Starts the message receiver.
+        /// Starts the message receiver thread.
         /// </summary>
         public void StartReceiverTask()
         {
@@ -130,19 +130,29 @@ namespace Amion.Network
         {
             if (disposed) return;
 
-            byte[] msg = message.ToArray();
-            
-            messageQueue.Enqueue(msg);
+            CheckMessage(message);
+
+            messageQueue.Enqueue(message.Array);
             messageSentEvent.Set();
         }
 
         /// <summary>
-        /// Sends a message for through the connection as soon as able to.
+        /// Sends a message through the connection as soon as possible.
+        /// Also blocks until the message is sent.
         /// </summary>
         /// <param name="message">Message to send.</param>
         public void SendSynchronously(NetOutMessage message)
         {
-            SocketSend(message.ToArray());
+            CheckMessage(message);
+            SocketSend(message.Array);
+        }
+
+        private void CheckMessage(NetOutMessage message)
+        {
+            if (message.Array == null)
+            {
+                throw new Exception("NetOutMessage's array is null. Did you Finish() the message?");
+            }
         }
 
         private void SocketSend(byte[] msg)

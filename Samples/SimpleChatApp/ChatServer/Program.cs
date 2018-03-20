@@ -118,6 +118,7 @@ namespace ChatServer
             //Create an outgoing network message for the chat message
             NetOutMessage netMessage = new NetOutMessage();
             netMessage.Write(chatMessage);
+            netMessage.Finish();
 
             //Now transmit the message to the other clients
             foreach (var item in server.Connections)

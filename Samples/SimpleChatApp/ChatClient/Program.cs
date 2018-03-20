@@ -77,6 +77,7 @@ namespace ChatClient
                             //Create an outgoing network message for the chat message
                             NetOutMessage netMessage = new NetOutMessage();
                             netMessage.Write(command);
+                            netMessage.Finish();
 
                             //Send the message if possible
                             client.Connection?.Send(netMessage);

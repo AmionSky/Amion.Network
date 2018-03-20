@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Amion.Network
@@ -46,43 +48,46 @@ namespace Amion.Network
         public const int HeaderSize = 5;
 
         /// <summary>
-        /// A List containing the message.
+        /// A MemoryStream containing the message while its writeable.
         /// </summary>
-        protected List<byte> message;
+        protected MemoryStream message;
+
+        /// <summary>
+        /// A byte array containing the message after it finalized.
+        /// </summary>
+        protected byte[] messageArray = null;
+
+        /// <summary>
+        /// Returns the message byte array. Null if the message hasn't been closed.
+        /// </summary>
+        public byte[] Array => messageArray;
 
         /// <summary></summary>
         /// <param name="msgType">The type of the message. Defaults to 'MessageType.Data'</param>
         public NetOutMessage(MessageType msgType = MessageType.Data)
         {
-            message = new List<byte>();
-            message.Add((byte)msgType);
-            message.AddRange(BitConverter.GetBytes((int)0));
+            message = new MemoryStream();
+            message.WriteByte((byte)msgType);
+            message.Write(BitConverter.GetBytes((int)0), 0, sizeof(int));
         }
 
         /// <summary>
-        /// Updates the message data length in the message.
+        /// Generates the final message as byte array and disposes the memory stream.
         /// </summary>
-        protected void FinalizeMessage()
+        public NetOutMessage Finish()
         {
-            byte[] msgLength = BitConverter.GetBytes(message.Count - 5);
+            if (messageArray != null) return this;
 
-            for (int i = 0; i < 4; i++)
-            {
-                message[i + 1] = msgLength[i];
-            }
-        }
+            byte[] msgLength = BitConverter.GetBytes((int)(message.Length - 5));
+            long msgPosition = message.Position;
 
-        //---------------------------------------------------------------------
-        // Internal methods
-        //---------------------------------------------------------------------
+            message.Position = 1;
+            message.Write(msgLength, 0, sizeof(int));
 
-        /// <summary>
-        /// Returns the message as a byte array.
-        /// </summary>
-        public byte[] ToArray()
-        {
-            FinalizeMessage();
-            return message.ToArray();
+            messageArray = message.ToArray();
+
+            message.Dispose();
+            return this;
         }
 
         /// <summary>
@@ -107,8 +112,8 @@ namespace Amion.Network
         public void Write(String data)
         {
             byte[] bytes = Encoding.Unicode.GetBytes(data);
-            message.AddRange(BitConverter.GetBytes(bytes.Length));
-            message.AddRange(bytes);
+            message.Write(BitConverter.GetBytes(bytes.Length), 0, sizeof(int));
+            message.Write(bytes, 0, bytes.Length);
         }
 
         /// <summary>
@@ -116,7 +121,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(Int16 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(Int16));
         }
 
         /// <summary>
@@ -124,7 +129,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(Int32 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(Int32));
         }
 
         /// <summary>
@@ -132,7 +137,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(Int64 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(Int64));
         }
 
         /// <summary>
@@ -140,7 +145,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(UInt16 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(UInt16));
         }
 
         /// <summary>
@@ -148,7 +153,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(UInt32 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(UInt32));
         }
 
         /// <summary>
@@ -156,7 +161,16 @@ namespace Amion.Network
         /// </summary>
         public void Write(UInt64 data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.Write(BitConverter.GetBytes(data), 0, sizeof(UInt64));
+        }
+
+        /// <summary>
+        /// Writes a System.DateTime (as UTC-Ticks) at the end of the message using 8 bytes.
+        /// </summary>
+        public void Write(DateTime data)
+        {
+            long dateAsLong = data.ToUniversalTime().Ticks;
+            message.Write(BitConverter.GetBytes(dateAsLong), 0, sizeof(long));
         }
 
         /// <summary>
@@ -164,7 +178,7 @@ namespace Amion.Network
         /// </summary>
         public void Write(bool data)
         {
-            message.AddRange(BitConverter.GetBytes(data));
+            message.WriteByte(BitConverter.GetBytes(data)[0]);
         }
 
         /// <summary>
@@ -172,7 +186,15 @@ namespace Amion.Network
         /// </summary>
         public void Write(byte data)
         {
-            message.Add(data);
+            message.WriteByte(data);
+        }
+
+        /// <summary>
+        /// Writes a byte array at the end of the message.
+        /// </summary>
+        public void Write(byte[] data)
+        {
+            message.Write(data, 0, data.Length);
         }
 
         /// <summary>
@@ -180,7 +202,8 @@ namespace Amion.Network
         /// </summary>
         public void Write(IEnumerable<byte> data)
         {
-            message.AddRange(data);
+            var dataArray = data.ToArray();
+            message.Write(dataArray, 0, dataArray.Length);
         }
 
         /// <summary>
@@ -188,7 +211,31 @@ namespace Amion.Network
         /// </summary>
         public void Write(Guid data)
         {
-            message.AddRange(data.ToByteArray());
+            message.Write(data.ToByteArray(), 0, 16);
+        }
+
+        //---------------------------------------------------------------------
+        // Dispose
+        //---------------------------------------------------------------------
+
+        /// <summary>
+        /// Releases resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Helper for Dispose()
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                message?.Dispose();
+            }
         }
     }
 
@@ -235,14 +282,22 @@ namespace Amion.Network
         }
 
         /// <summary>
+        /// Reads a short from the message and moves the readCursor.
+        /// </summary>
+        public Int16 ReadInt16()
+        {
+            Int16 data = BitConverter.ToInt16(messageData, readCursor);
+            readCursor += sizeof(Int16);
+            return data;
+        }
+
+        /// <summary>
         /// Reads an int from the message and moves the readCursor.
         /// </summary>
         public Int32 ReadInt32()
         {
             Int32 data = BitConverter.ToInt32(messageData, readCursor);
-
             readCursor += sizeof(Int32);
-
             return data;
         }
 
@@ -252,10 +307,48 @@ namespace Amion.Network
         public Int64 ReadInt64()
         {
             Int64 data = BitConverter.ToInt64(messageData, readCursor);
-
             readCursor += sizeof(Int64);
-
             return data;
+        }
+
+        /// <summary>
+        /// Reads an unsigned short from the message and moves the readCursor.
+        /// </summary>
+        public UInt16 ReadUInt16()
+        {
+            UInt16 data = BitConverter.ToUInt16(messageData, readCursor);
+            readCursor += sizeof(UInt16);
+            return data;
+        }
+
+        /// <summary>
+        /// Reads an unsigned int from the message and moves the readCursor.
+        /// </summary>
+        public UInt32 ReadUInt32()
+        {
+            UInt32 data = BitConverter.ToUInt32(messageData, readCursor);
+            readCursor += sizeof(UInt32);
+            return data;
+        }
+
+        /// <summary>
+        /// Reads an unsigned long from the message and moves the readCursor.
+        /// </summary>
+        public UInt64 ReadUInt64()
+        {
+            UInt64 data = BitConverter.ToUInt64(messageData, readCursor);
+            readCursor += sizeof(UInt64);
+            return data;
+        }
+
+        /// <summary>
+        /// Reads a System.DateTime (as Ticks.ToLocalTime()) from the message and moves the readCursor.
+        /// </summary>
+        public DateTime ReadDateTime()
+        {
+            long data = BitConverter.ToInt64(messageData, readCursor);
+            readCursor += sizeof(long);
+            return new DateTime(data).ToLocalTime();
         }
 
         /// <summary>
@@ -264,9 +357,7 @@ namespace Amion.Network
         public bool ReadBoolean()
         {
             bool data = BitConverter.ToBoolean(messageData, readCursor);
-
             readCursor++;
-
             return data;
         }
 
@@ -276,9 +367,7 @@ namespace Amion.Network
         public byte ReadByte()
         {
             byte data = messageData[readCursor];
-
             readCursor++;
-
             return data;
         }
 
@@ -289,11 +378,8 @@ namespace Amion.Network
         public byte[] ReadBytes(int amount)
         {
             byte[] data = new byte[amount];
-
             Buffer.BlockCopy(messageData, readCursor, data, 0, amount);
-
             readCursor += amount;
-
             return data;
         }
 
@@ -304,9 +390,7 @@ namespace Amion.Network
         public ArraySegment<byte> ReadBytesAsSegment(int amount)
         {
             var arraySegment =  new ArraySegment<byte>(messageData, readCursor, amount);
-
             readCursor += amount;
-
             return arraySegment;
         }
 
@@ -317,11 +401,8 @@ namespace Amion.Network
         {
             const int guidSize = 16;
             byte[] data = new byte[guidSize];
-            
             Buffer.BlockCopy(messageData, readCursor, data, 0, guidSize);
-
             readCursor += guidSize;
-
             return new Guid(data);
         }
 
