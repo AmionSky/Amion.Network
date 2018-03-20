@@ -110,7 +110,7 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Starts the message receiver.
+        /// Starts the message receiver thread.
         /// </summary>
         public void StartReceiverTask()
         {
