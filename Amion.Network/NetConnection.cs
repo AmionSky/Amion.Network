@@ -137,7 +137,8 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Sends a message for through the connection as soon as able to.
+        /// Sends a message through the connection as soon as possible.
+        /// Also blocks until the message is sent.
         /// </summary>
         /// <param name="message">Message to send.</param>
         public void SendSynchronously(NetOutMessage message)
