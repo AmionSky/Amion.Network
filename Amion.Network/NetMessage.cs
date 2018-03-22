@@ -71,6 +71,8 @@ namespace Amion.Network
             message.Write(BitConverter.GetBytes((int)0), 0, sizeof(int));
         }
 
+        private NetOutMessage() { }
+
         /// <summary>
         /// Generates the final message as byte array and disposes the memory stream.
         /// </summary>
@@ -100,6 +102,32 @@ namespace Amion.Network
         {
             messageType = (MessageType)header[0];
             messageLength = BitConverter.ToInt32(header, 1);
+        }
+
+        /// <summary>
+        /// Create a finished message from byte arrays without creating a memory stream
+        /// </summary>
+        /// <param name="msgType">The type of the message</param>
+        /// <param name="arrays">Arrays to copy into the message</param>
+        public static NetOutMessage CreateFinished(MessageType msgType = MessageType.Data, params byte[][] arrays)
+        {
+            var outMessage = new NetOutMessage();
+
+            int arraysLength = arrays.Sum(x => x.Length);
+            byte[] ret = new byte[arraysLength + 5];
+            int offset = 5;
+
+            ret[0] = (byte)msgType;
+            Buffer.BlockCopy(BitConverter.GetBytes(arraysLength), 0, ret, 1, sizeof(int));
+
+            foreach (byte[] data in arrays)
+            {
+                Buffer.BlockCopy(data, 0, ret, offset, data.Length);
+                offset += data.Length;
+            }
+
+            outMessage.messageArray = ret;
+            return outMessage;
         }
 
         //---------------------------------------------------------------------
