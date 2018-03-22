@@ -109,21 +109,21 @@ namespace Amion.Network
         /// </summary>
         /// <param name="msgType">The type of the message</param>
         /// <param name="arrays">Arrays to copy into the message</param>
-        public static NetOutMessage CreateFinished(MessageType msgType = MessageType.Data, params byte[][] arrays)
+        public static NetOutMessage CreateFinished(MessageType msgType = MessageType.Data, params ICollection<byte>[] arrays)
         {
             var outMessage = new NetOutMessage();
 
-            int arraysLength = arrays.Sum(x => x.Length);
+            int arraysLength = arrays.Sum(x => x.Count);
             byte[] ret = new byte[arraysLength + 5];
             int offset = 5;
 
             ret[0] = (byte)msgType;
             Buffer.BlockCopy(BitConverter.GetBytes(arraysLength), 0, ret, 1, sizeof(int));
 
-            foreach (byte[] data in arrays)
+            foreach (var data in arrays)
             {
-                Buffer.BlockCopy(data, 0, ret, offset, data.Length);
-                offset += data.Length;
+                data.CopyTo(ret, offset);
+                offset += data.Count;
             }
 
             outMessage.messageArray = ret;
