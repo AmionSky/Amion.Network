@@ -198,6 +198,17 @@ namespace Amion.Network
         }
 
         /// <summary>
+        /// Writes a byte array at the end of the message.
+        /// </summary>
+        /// <param name="data">Array to write from</param>
+        /// <param name="offset">The zero-based byte offset in data at which to begin copying bytes</param>
+        /// <param name="count">Maximum number of bytes to write</param>
+        public void Write(byte[] data, int offset, int count)
+        {
+            message.Write(data, offset, count);
+        }
+
+        /// <summary>
         /// Writes a series of bytes at the end of the message.
         /// </summary>
         public void Write(IEnumerable<byte> data)
