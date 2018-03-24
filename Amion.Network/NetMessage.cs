@@ -71,7 +71,7 @@ namespace Amion.Network
             message.Write(BitConverter.GetBytes((int)0), 0, sizeof(int));
         }
 
-        private NetOutMessage() { }
+        private NetOutMessage(byte[] message) { messageArray = message; }
 
         /// <summary>
         /// Generates the final message as byte array and disposes the memory stream.
@@ -105,29 +105,28 @@ namespace Amion.Network
         }
 
         /// <summary>
-        /// Create a finished message from byte arrays without creating a memory stream
+        /// Create a finished message from byte arrays without creating a memory stream and the ability to write to it.
         /// </summary>
         /// <param name="msgType">The type of the message</param>
         /// <param name="arrays">Arrays to copy into the message</param>
-        public static NetOutMessage CreateFinished(MessageType msgType = MessageType.Data, params ICollection<byte>[] arrays)
+        public static NetOutMessage CreateFinished(MessageType msgType, params ICollection<byte>[] arrays)
         {
-            var outMessage = new NetOutMessage();
-
             int arraysLength = arrays.Sum(x => x.Count);
-            byte[] ret = new byte[arraysLength + 5];
-            int offset = 5;
+            int offset = HeaderSize;
+            var message = new byte[arraysLength + HeaderSize];
 
-            ret[0] = (byte)msgType;
-            Buffer.BlockCopy(BitConverter.GetBytes(arraysLength), 0, ret, 1, sizeof(int));
+            //Fill header
+            message[0] = (byte)msgType;
+            BitConverter.GetBytes(arraysLength).CopyTo(message, 1);
 
-            foreach (var data in arrays)
+            //Fill data
+            for (int i = 0; i < arrays.Length; i++)
             {
-                data.CopyTo(ret, offset);
-                offset += data.Count;
+                arrays[i].CopyTo(message, offset);
+                offset += arrays[i].Count;
             }
 
-            outMessage.messageArray = ret;
-            return outMessage;
+            return new NetOutMessage(message);
         }
 
         //---------------------------------------------------------------------

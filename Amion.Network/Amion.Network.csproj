@@ -5,12 +5,12 @@
     <Description>A lightweight .Net TCP network library</Description>
     <Authors>Csányi István</Authors>
     <Company />
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <AssemblyVersion>1.2.1.0</AssemblyVersion>
     <Copyright>Copyright ©2018 Csányi István</Copyright>
     <PackageProjectUrl>https://github.com/Pisti01/Amion.Network</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/Pisti01/Amion.Network/blob/master/LICENSE</PackageLicenseUrl>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>1.2.0</Version>
+    <FileVersion>1.2.1.0</FileVersion>
+    <Version>1.2.1</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>aminetkey.pfx</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
